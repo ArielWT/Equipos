@@ -12,19 +12,32 @@ const initialPlayers = [
   { name: 'Carlitos', rating: 7.0 },
   { name: 'Seba', rating: 7.3 },
   { name: 'Feña', rating: 5.9 },
-  { name: 'Gustavo (P)', rating: 7.6 },
+  { name: 'Gustavo (P)', rating: 8.0 },
   { name: 'Tío Seba', rating: 6.2 },
   { name: 'Manuel', rating: 7.5 },
   { name: 'Pablo P', rating: 6.5 },
   { name: 'Kevin', rating: 7.4 },
-  { name: 'David', rating: 7.0 },
+  { name: 'David', rating: 6.5 },
   { name: 'Benja', rating: 7.5 },
   { name: 'Juan', rating: 7.2 },
+  { name: 'Marín', rating: 7.2 },
 ];
 
 const STORAGE_KEY = 'equipos_players_v1';
 
-function loadPlayers() {
+async function loadPlayersRemote() {
+  try {
+    const res = await fetch('/players', { headers: { 'Accept': 'application/json' } });
+    if (!res.ok) throw new Error('remote not ok');
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error('remote invalid');
+    return data.filter(p => p && typeof p.name === 'string' && typeof p.rating === 'number');
+  } catch (_) {
+    return null;
+  }
+}
+
+function loadPlayersLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [...initialPlayers];
@@ -36,12 +49,25 @@ function loadPlayers() {
   }
 }
 
-function savePlayers(players) {
+function savePlayersLocal(players) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
 }
 
-let players = loadPlayers();
-let selected = new Set(players.map(p => p.name));
+async function savePlayersRemote(players) {
+  try {
+    const res = await fetch('/players', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(players)
+    });
+    return res.ok;
+  } catch (_) {
+    return false;
+  }
+}
+
+let players = [];
+let selected = new Set();
 
 const els = {
   enabledCount: document.getElementById('enabledCount'),
@@ -165,7 +191,7 @@ function renderEditList() {
   });
 }
 
-els.saveChangesBtn.addEventListener('click', () => {
+els.saveChangesBtn.addEventListener('click', async () => {
   // read back values
   const rows = els.editList.querySelectorAll('.edit-row');
   const updated = [...players];
@@ -177,19 +203,21 @@ els.saveChangesBtn.addEventListener('click', () => {
     }
   });
   players = updated;
-  savePlayers(players);
+  savePlayersLocal(players);
+  await savePlayersRemote(players);
   renderPlayersList();
   updateEnabledCount();
 });
 
-els.addPlayerBtn.addEventListener('click', () => {
+els.addPlayerBtn.addEventListener('click', async () => {
   const name = els.newName.value.trim();
   const rating = parseFloat(els.newRating.value);
   if (!name || !Number.isFinite(rating) || rating < 1 || rating > 10) return;
   if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) return;
   players = [...players, { name, rating }];
   selected.add(name);
-  savePlayers(players);
+  // Persistimos en este navegador usando localStorage
+  savePlayersLocal(players);
   els.newName.value = '';
   els.newRating.value = '';
   renderPlayersList();
@@ -219,7 +247,16 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-function init() {
+async function init() {
+  // Try remote first
+  const remote = await loadPlayersRemote();
+  if (remote && remote.length) {
+    players = remote;
+    savePlayersLocal(players); // cache
+  } else {
+    players = loadPlayersLocal();
+  }
+  selected = new Set(players.map(p => p.name));
   renderPlayersList();
   updateEnabledCount();
 }
