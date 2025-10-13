@@ -5,19 +5,19 @@
 
 const initialPlayers = [
   { name: 'Rulo', rating: 8.0 },
-  { name: 'Ariel', rating: 8.3 },
+  { name: 'Ariel', rating: 8.0 },
   { name: 'Diego', rating: 7.5 },
   { name: 'Jaime', rating: 7.2 },
   { name: 'Pablo V', rating: 8.0 },
   { name: 'Carlitos', rating: 7.0 },
   { name: 'Seba', rating: 7.3 },
-  { name: 'Feña', rating: 5.5 },
-  { name: 'Gustavo (P)', rating: 8.0 },
-  { name: 'Tío Seba', rating: 6.0 },
+  { name: 'Feña', rating: 5.9 },
+  { name: 'Gustavo (P)', rating: 7.6 },
+  { name: 'Tío Seba', rating: 6.2 },
   { name: 'Manuel', rating: 7.5 },
-  { name: 'Pablo P', rating: 6.8 },
-  { name: 'Kevin', rating: 7.3 },
-  { name: 'David', rating: 6.5 },
+  { name: 'Pablo P', rating: 6.5 },
+  { name: 'Kevin', rating: 7.4 },
+  { name: 'David', rating: 7.0 },
 ];
 
 const STORAGE_KEY = 'equipos_players_v1';
