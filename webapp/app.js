@@ -16,7 +16,7 @@ const initialPlayers = [
   { name: 'Tío Seba', rating: 6.0 },
   { name: 'Manuel', rating: 7.5 },
   { name: 'Pablo P', rating: 6.8 },
-  { name: 'Cristian', rating: 7.3 },
+  { name: 'Kevin', rating: 7.3 },
   { name: 'David', rating: 6.5 },
 ];
 
