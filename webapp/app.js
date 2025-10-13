@@ -10,7 +10,7 @@ const initialPlayers = [
   { name: 'Jaime', rating: 7.3 },
   { name: 'Pablo V', rating: 8.0 },
   { name: 'Carlitos', rating: 7.0 },
-  { name: 'Seba', rating: 7.3 },
+  { name: 'Seba', rating: 7.2 },
   { name: 'Feña', rating: 5.9 },
   { name: 'Gustavo (P)', rating: 8.0 },
   { name: 'Tío Seba', rating: 6.2 },
