@@ -18,6 +18,8 @@ const initialPlayers = [
   { name: 'Pablo P', rating: 6.5 },
   { name: 'Kevin', rating: 7.4 },
   { name: 'David', rating: 7.0 },
+  { name: 'Benja', rating: 7.5 },
+  { name: 'Juan', rating: 7.2 },
 ];
 
 const STORAGE_KEY = 'equipos_players_v1';
