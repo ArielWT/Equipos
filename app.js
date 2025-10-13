@@ -1,0 +1,224 @@
+// Simple web version of the Android app
+// - Ratings hidden in public UI
+// - Secret menu: ArrowUp + ArrowDown within 300ms
+// - Persistent storage via localStorage
+
+const initialPlayers = [
+  { name: 'Rulo', rating: 8.0 },
+  { name: 'Ariel', rating: 8.3 },
+  { name: 'Diego', rating: 7.5 },
+  { name: 'Jaime', rating: 7.2 },
+  { name: 'Pablo V', rating: 8.0 },
+  { name: 'Carlitos', rating: 7.0 },
+  { name: 'Seba', rating: 7.3 },
+  { name: 'Feña', rating: 5.5 },
+  { name: 'Gustavo (P)', rating: 8.0 },
+  { name: 'Tío Seba', rating: 6.0 },
+  { name: 'Manuel', rating: 7.5 },
+  { name: 'Pablo P', rating: 6.8 },
+  { name: 'Cristian', rating: 7.3 },
+  { name: 'David', rating: 6.5 },
+];
+
+const STORAGE_KEY = 'equipos_players_v1';
+
+function loadPlayers() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [...initialPlayers];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [...initialPlayers];
+    return parsed.filter(p => p && typeof p.name === 'string' && typeof p.rating === 'number');
+  } catch (_) {
+    return [...initialPlayers];
+  }
+}
+
+function savePlayers(players) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+}
+
+let players = loadPlayers();
+let selected = new Set(players.map(p => p.name));
+
+const els = {
+  enabledCount: document.getElementById('enabledCount'),
+  countInput: document.getElementById('countInput'),
+  generateBtn: document.getElementById('generateBtn'),
+  errorMsg: document.getElementById('errorMsg'),
+  playersList: document.getElementById('playersList'),
+  teamATitle: document.getElementById('teamATitle'),
+  teamAList: document.getElementById('teamAList'),
+  teamBTitle: document.getElementById('teamBTitle'),
+  teamBList: document.getElementById('teamBList'),
+  adminDialog: document.getElementById('adminDialog'),
+  editList: document.getElementById('editList'),
+  newName: document.getElementById('newName'),
+  newRating: document.getElementById('newRating'),
+  addPlayerBtn: document.getElementById('addPlayerBtn'),
+  saveChangesBtn: document.getElementById('saveChangesBtn'),
+  closeDialogBtn: document.getElementById('closeDialogBtn'),
+};
+
+function renderPlayersList() {
+  els.playersList.innerHTML = '';
+  players.forEach(p => {
+    const li = document.createElement('li');
+    const label = document.createElement('label');
+    label.textContent = p.name;
+    label.style.flex = '1';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'checkbox';
+    cb.checked = selected.has(p.name);
+    cb.addEventListener('change', () => {
+      if (cb.checked) selected.add(p.name); else selected.delete(p.name);
+      updateEnabledCount();
+    });
+
+    li.appendChild(label);
+    li.appendChild(cb);
+    els.playersList.appendChild(li);
+  });
+}
+
+function updateEnabledCount() {
+  const enabled = players.filter(p => selected.has(p.name)).length;
+  els.enabledCount.textContent = `Habilitados: ${enabled}`;
+}
+
+function generateBalancedTeams(pool) {
+  const sorted = [...pool].sort((a,b) => b.rating - a.rating);
+  const a = []; let sa = 0; const b = []; let sb = 0;
+  for (const p of sorted) {
+    const toA = sa < sb ? true : (sb < sa ? false : Math.random() < 0.5);
+    if (toA) { a.push(p); sa += p.rating; } else { b.push(p); sb += p.rating; }
+  }
+  while (Math.abs(a.length - b.length) > 1) {
+    if (a.length > b.length) b.push(a.pop()); else a.push(b.pop());
+  }
+  return [a, b];
+}
+
+function renderTeams(a, b) {
+  const avgA = a.length ? (a.reduce((s,p)=>s+p.rating,0)/a.length) : 0;
+  const avgB = b.length ? (b.reduce((s,p)=>s+p.rating,0)/b.length) : 0;
+  els.teamATitle.textContent = `Equipo A (Promedio: ${avgA.toFixed(1)})`;
+  els.teamBTitle.textContent = `Equipo B (Promedio: ${avgB.toFixed(1)})`;
+  // Shuffle only for display
+  const da = [...a].sort(()=>Math.random()-0.5);
+  const db = [...b].sort(()=>Math.random()-0.5);
+  els.teamAList.innerHTML = '';
+  els.teamBList.innerHTML = '';
+  da.forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = `• ${p.name}`;
+    els.teamAList.appendChild(li);
+  });
+  db.forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = `• ${p.name}`;
+    els.teamBList.appendChild(li);
+  });
+}
+
+els.generateBtn.addEventListener('click', () => {
+  els.errorMsg.textContent = '';
+  const n = parseInt(els.countInput.value || '0', 10);
+  if (!Number.isFinite(n) || n < 2) {
+    els.errorMsg.textContent = 'El mínimo es 2';
+    return;
+  }
+  const pool = players.filter(p => selected.has(p.name));
+  if (n > pool.length) {
+    els.errorMsg.textContent = 'No hay suficientes jugadores seleccionados';
+    return;
+  }
+  const chosen = [...pool].sort(() => Math.random()-0.5).slice(0, n);
+  const [a, b] = generateBalancedTeams(chosen);
+  renderTeams(a, b);
+});
+
+function renderEditList() {
+  els.editList.innerHTML = '';
+  players.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'edit-row';
+
+    const name = document.createElement('div');
+    name.textContent = p.name;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = String(p.rating);
+    input.inputMode = 'decimal';
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/[^\d.]/g, '');
+    });
+
+    row.appendChild(name);
+    row.appendChild(input);
+    els.editList.appendChild(row);
+  });
+}
+
+els.saveChangesBtn.addEventListener('click', () => {
+  // read back values
+  const rows = els.editList.querySelectorAll('.edit-row');
+  const updated = [...players];
+  rows.forEach((row, idx) => {
+    const input = row.querySelector('input');
+    const val = parseFloat(input.value);
+    if (Number.isFinite(val) && val >= 1 && val <= 10) {
+      updated[idx] = { ...updated[idx], rating: val };
+    }
+  });
+  players = updated;
+  savePlayers(players);
+  renderPlayersList();
+  updateEnabledCount();
+});
+
+els.addPlayerBtn.addEventListener('click', () => {
+  const name = els.newName.value.trim();
+  const rating = parseFloat(els.newRating.value);
+  if (!name || !Number.isFinite(rating) || rating < 1 || rating > 10) return;
+  if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) return;
+  players = [...players, { name, rating }];
+  selected.add(name);
+  savePlayers(players);
+  els.newName.value = '';
+  els.newRating.value = '';
+  renderPlayersList();
+  updateEnabledCount();
+});
+
+els.closeDialogBtn.addEventListener('click', () => {
+  els.adminDialog.close();
+});
+
+// secret: ArrowUp + ArrowDown within 300ms
+let lastUp = -1, lastDown = -1;
+window.addEventListener('keydown', (e) => {
+  const now = performance.now();
+  if (e.key === 'ArrowUp') {
+    lastUp = now;
+    if (lastDown > 0 && (now - lastDown) <= 300) {
+      renderEditList();
+      els.adminDialog.showModal();
+    }
+  } else if (e.key === 'ArrowDown') {
+    lastDown = now;
+    if (lastUp > 0 && (now - lastUp) <= 300) {
+      renderEditList();
+      els.adminDialog.showModal();
+    }
+  }
+});
+
+function init() {
+  renderPlayersList();
+  updateEnabledCount();
+}
+init();
