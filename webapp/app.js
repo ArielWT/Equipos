@@ -18,6 +18,8 @@
 // git add .
 // git commit -m "Actualización del proyecto Equipos"
 // git push origin main
+// página: equipos-production.up.railway.app
+
 
 
 
