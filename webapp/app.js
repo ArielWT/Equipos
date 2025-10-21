@@ -3,6 +3,25 @@
 // - Secret menu: ArrowUp + ArrowDown within 300ms
 // - Persistent storage via localStorage
 
+// Primero pegar ruta de carpeta: cd xxxxxxx
+// Luego: git init
+// git add .
+// git commit -m "Initial commit"
+// git remote add origin https://github.com/ArielWT/Equipos/tree/main
+// Puede ser que ya este creado el git remoto
+// revisa la ruta del git remoto: git remote -v
+// si no es la correcta, borra el remoto: git remote remove origin
+// y vuelve a crearlo: git remote add origin https://github.com/ArielWT/Equipos/tree/main
+// Ahora sincronizar con repositorio:
+// git pull origin main
+// ahora subir cambios:
+// git add .
+// git commit -m "Actualización del proyecto Equipos"
+// git push origin main
+
+
+
+
 const initialPlayers = [
   { name: 'Rulo', rating: 8.0 },
   { name: 'Ariel', rating: 8.0 },
@@ -21,6 +40,19 @@ const initialPlayers = [
   { name: 'Benja', rating: 7.5 },
   { name: 'Juan', rating: 7.2 },
   { name: 'Marín', rating: 7.2 },
+  { name: 'Felipe Ep', rating: 7.2 },
+  { name: 'Chiqui', rating: 8.8 },
+  { name: 'Bubu', rating: 7.8 },
+  { name: 'Vicho', rating: 8.8 },
+  { name: 'Emilio', rating: 8.8 },
+  { name: 'Jesús', rating: 7.3 },
+  { name: 'Shuvert', rating: 7.7 },
+  { name: 'Gastón', rating: 7.6 },
+  { name: 'Richard', rating: 8.0 },
+  { name: 'Víctor', rating: 7.4 },
+  { name: 'Gustavo Riquelme', rating: 7.1 },
+  { name: 'Navaloco', rating: 5.6 },
+  { name: 'Lucas', rating: 7.5 },
 ];
 
 const STORAGE_KEY = 'equipos_players_v1';
@@ -256,8 +288,9 @@ async function init() {
   } else {
     players = loadPlayersLocal();
   }
-  selected = new Set(players.map(p => p.name));
+  selected = new Set();
   renderPlayersList();
   updateEnabledCount();
 }
 init();
+
